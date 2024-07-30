@@ -1,15 +1,35 @@
 let editId = -1;
         let data = [];
 
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+            if (body.classList.contains('dark')) {
+                body.classList.remove('dark');
+                body.classList.add('light');
+                themeToggleBtn.innerHTML = '🌛';
+            } else {
+                body.classList.remove('light');
+                body.classList.add('dark');
+                themeToggleBtn.innerHTML = '🌞';
+            }
+            display(); 
+        }
+
         function add() {
             const tempObj = {
                 task: document.getElementById('todo').value,
-                complete: false 
+                newtask: document.getElementById('todo').value,
+                complete: false
             };
-            for(i of data){
-                if(tempObj.task==i.task){
-                  alert("Same Task")
-                  return false;
+            for (let i of data) {
+                if (tempObj.task.toLowerCase() == i.newtask.toLowerCase()) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Same Task, Try Again!",
+                      });
+                    return false;
                 }
             }
             if (editId >= 0) {
@@ -18,10 +38,17 @@ let editId = -1;
                 document.getElementById('submit').value = "Submit";
             } else {
                 data.push(tempObj);
+                Swal.fire({
+                    position: "middle",
+                    icon: "success",
+                    title: "Task Successfully Added",
+                    showConfirmButton: false,
+                    timer: 1500
+                  });
             }
 
             display();
-            document.getElementById('todo').value = ''; 
+            document.getElementById('todo').value = '';
             return false;
         }
 
@@ -29,7 +56,8 @@ let editId = -1;
             const temp = document.getElementById("form");
             let tempString = "";
             if (data.length !== 0) {
-                tempString = '<table class="table table-dark table-striped"><thead><tr><th scope="col">Your Task</th><th scope="col">Action</th><th scope="col">Complete</th></tr></thead><tbody>';
+                let tableClass = document.body.classList.contains('dark') ? 'table-dark' : 'table-light';
+                tempString = `<table class="table ${tableClass} table-hover"><thead><tr><th scope="col">Your Task</th><th scope="col">Action</th><th scope="col">Complete</th></tr></thead><tbody>`;
                 for (let i = 0; i < data.length; i++) {
                     tempString += "<tr>";
                     tempString += '<td id="task' + i + '" style="';
@@ -47,6 +75,7 @@ let editId = -1;
                 tempString = '<p>No tasks added yet.</p>';
             }
             temp.innerHTML = tempString;
+            updateTaskSummary();
         }
 
         function edit(id) {
@@ -61,7 +90,7 @@ let editId = -1;
         }
 
         function toggleLineThrough(index) {
-            data[index].complete = !data[index].complete; 
+            data[index].complete = !data[index].complete;
 
             const taskElement = document.getElementById('task' + index);
             if (data[index].complete) {
@@ -71,4 +100,12 @@ let editId = -1;
             }
 
             display();
+        }
+
+        function updateTaskSummary() {
+            const completedTasks = data.filter(task => task.complete).length;
+            const pendingTasks = data.length - completedTasks;
+
+            document.getElementById('completedTasks').innerText = `Completed Tasks: ${completedTasks}`;
+            document.getElementById('pendingTasks').innerText = `Pending Tasks: ${pendingTasks}`;
         }
