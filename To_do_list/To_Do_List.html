@@ -7,9 +7,11 @@
     <title>To-Do List</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <script src="list.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.3/dist/sweetalert2.all.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.12.3/dist/sweetalert2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/fontawesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body.light {
             background-color: white;
@@ -17,20 +19,20 @@
         }
 
         body.dark {
-            background-color: #1b2630;
+            background-color: #030101;
             color: white;
         }
 
         #themeToggleBtn {
             position: fixed;
-            top: 10px;
-            right: 10px;
+            top: 30px;
+            right: 20px;
             border: 2px solid #ddd;
-            border-radius: 50%;
+            border-radius: 8px;
             background: none;
-            font-size: 1.5rem;
+            font-size: 1rem;
             cursor: pointer;
-            padding: 10px;
+            padding: 8px;
             transition: border-color 0.3s, background-color 0.3s;
         }
 
@@ -45,51 +47,113 @@
         }
 
         #themeToggleBtn:hover {
-            border-color: #007bff;
+            background-color: #6c757d;
         }
 
-        @media (max-width: 576px) {
-            #themeToggleBtn {
-                top: 5px;
-                right: 5px;
-                font-size: 1rem;
-                padding: 5px;
-            }
+        .task-box {
+            display: none;
+            margin-top: 15px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .task-box table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .btn-submit {
+            border: none;
+            border-radius: 5px;
+            padding: 8px 16px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        body.light .btn-submit {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        body.light .btn-submit:hover {
+            background-color: #0056b3;
+        }
+
+        body.dark .btn-submit {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        body.dark .btn-submit:hover {
+            background-color: #1e7e34;
         }
     </style>
-
 </head>
 
 <body class="dark">
-    <button id="themeToggleBtn" onclick="toggleTheme()">🌞</button>
+    <button id="themeToggleBtn" class="btn-theme-toggle" onclick="toggleTheme()">
+        <i class="fa-solid fa-sun"></i>
+    </button>
     <div class="container">
         <div class="text-center mt-5">
             <h1 class="display-5 mb-5"><b>To Do List</b></h1>
         </div>
         <div class="main row justify-content-center">
-            <form class="row justify-content-center mb-5" onsubmit="return add()">
+            <form class="row justify-content-center mb-5" id="taskForm">
                 <div class="col-12 col-lg-10 mb-3">
                     <label class="form-label">Enter Task</label>
-                    <input type="text" class="form-control" id="todo" placeholder="Enter Your Task" required>
+                    <input type="text" class="form-control" id="toDo" placeholder="Enter Your Task" required>
+                </div>
+                <div class="col-12 col-lg-10 mb-3">
+                    <label class="form-label">Select Date</label>
+                    <input type="date" class="form-control" id="taskDate">
+                </div>
+                <div class="col-12 col-lg-10 mb-3">
+                    <label class="form-label">Select Priority</label>
+                    <select class="form-select" id="taskPriority">
+                        <option value="1" data-icon="fa-flag" class="text-danger">Priority-1 (High)</option>
+                        <option value="2" data-icon="fa-flag" class="text-warning">Priority-2 (Medium)</option>
+                        <option value="3" data-icon="fa-flag" class="text-primary">Priority-3 (Low)</option>
+                        <option value="4" data-icon="fa-flag" class="text-secondary">Priority-4 (Very Low)</option>
+                    </select>
+                </div>
+                
+                <div class="col-10 mb-3">
+                    <input type="submit" class="btn btn-submit" id="submit" value="Submit" onclick="return add()">
                 </div>
                 <div class="col-12 col-lg-10 mb-3">
                     <label class="form-label">Search Task</label>
                     <input type="text" class="form-control" id="search" placeholder="Search Your Task" oninput="searchTasks()">
                 </div>
-                <div class="col-10">
-                    <input type="submit" class="btn btn-success" id="submit" value="Submit">
-                </div>
             </form>
+            
+            
             <div class="col-12 col-lg-10 mb-1" id="taskSummary">
                 <div class="d-flex justify-content-between">
                     <p id="completedTasks">Completed Tasks: 0</p>
                     <p id="pendingTasks">Pending Tasks: 0</p>
                 </div>
             </div>
-            <div class="col-12 col-lg-10 mt-5" id="form">
+            <div class="col-12 col-lg-10 mb-3">
+                <label class="form-label">Sort Tasks By</label>
+                <select class="form-select" id="sortCriteria" onchange="display()">
+                    <option value="date">Date</option>
+                    <option value="priority">Priority</option>
+                </select>
             </div>
+            <div class="col-12 col-lg-10 mt-5 task-box" id="taskBox">
+                <div class="card">
+                    <div class="card-body">
+                        <div id="form"></div>
+                    </div>
+                </div>
+            </div>
+            
+            
         </div>
     </div>
+    <script src="list.js"></script>
 </body>
 
 </html>
