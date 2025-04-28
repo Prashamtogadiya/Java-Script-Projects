@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock Paper Scissors</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="icon" href="favicon.ico" />
+
+    <style>
+        .choice-card {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            transition: transform 0.2s;
+            cursor: pointer;
+            background-color: #f9f9f9;
+        }
+
+        .choice-card:hover {
+            transform: scale(1.05);
+            background-color: #e6f7ff;
+        }
+
+        .choice-card img {
+            height: 100px;
+            width: auto;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+
+        .btn-custom {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            border-radius: 8px;
+        }
+
+        #result,
+        #compMove {
+            margin-top: 30px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .move-icon {
+            height: 50px;
+            width: 50px;
+        }
+
+       
+
+        #moves img {
+            margin: 0 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container my-5">
+        <div class="row text-center fs-1 pb-4">
+            <div class="col">
+                Rock Paper Scissors
+
+            </div>
+        </div>
+        <div class="row justify-content-center g-4">
+            <div class="col-md-2 text-center choice-card"  id="scissors">
+                <img src="scissors-emoji.png" class="img-fluid move-icon" alt="Scissors">
+                <div>Scissor</div>
+            </div>
+            <div class="col-md-2 text-center choice-card"  id="paper">
+                <img src="paper-emoji.png" class="img-fluid move-icon" alt="Paper">
+                <div>Paper</div>
+            </div>
+            <div class="col-md-2 text-center choice-card"  id="rock">
+                <img src="rock-emoji.png" class="img-fluid move-icon" alt="Rock">
+                <div>Rock</div>
+            </div>
+        </div>
+
+        <div class="row mt-5 justify-content-center">
+            <div class="col-md-6 d-flex justify-content-center align-items-center">
+                <button class="btn btn-primary btn-custom" onclick="showScore()">Show Score</button>
+                <button class="btn btn-danger btn-custom" onclick="resetScore()">Reset Score</button>
+                <button class="btn btn-primary btn-custom" id="autoPlay" onclick="autoPlay()">Auto Play</button>
+
+            </div>
+        </div>
+        <div id="moves" class="row "></div>
+        <div id="result" class="row "></div>
+    </div>
+
+    <script>
+        const score = { you: 0, computer: 0, ties: 0 };
+        let isAutoPlaying = false;
+
+        document.querySelector('#rock').addEventListener('click',()=>{
+            playGame('rock')
+        })
+
+        document.querySelector('#scissors').addEventListener('click',()=>{
+            playGame('scissors')
+        })
+        document.querySelector('#paper').addEventListener('click',()=>{
+            playGame('paper')
+        })
+        function showScore() {
+            alert(`You: ${score.you}, Computer: ${score.computer}, Ties: ${score.ties}`);
+        }
+        let isReseted = false
+        function resetScore() {
+            Object.keys(score).forEach(key => score[key] = 0);
+            isReseted = true 
+            displayResult('','','',isReseted);
+        }
+
+        function computeRandom() {
+            const moves = ['rock', 'paper', 'scissors'];
+            return moves[Math.floor(Math.random() * 3)];
+        }
+
+        function playGame(playerMove) {
+            const computerMove = computeRandom();
+            getResult(playerMove, computerMove);
+        }
+
+        function getResult(playerMove, computerMove) {
+            let result = '';
+            if (playerMove === computerMove) {
+                score.ties++;
+                result = "Tie!";
+            } else if (
+                (playerMove === 'rock' && computerMove === 'scissors') ||
+                (playerMove === 'paper' && computerMove === 'rock') ||
+                (playerMove === 'scissors' && computerMove === 'paper')
+            ) {
+                score.you++;
+                result = 'You win!';
+            } else {
+                score.computer++;
+                result = 'You lose!';
+            }
+
+            displayResult(playerMove, computerMove, result);
+        }
+        let intervalId
+        function autoPlay(){
+           if(!isAutoPlaying){
+            document.getElementById('autoPlay').innerText="Stop Play"
+            intervalId = setInterval(()=>{
+                const playerMove = computeRandom();
+                playGame(playerMove)
+            },1000)
+            isAutoPlaying=true
+           }else{
+            clearInterval(intervalId)
+            isAutoPlaying=false
+            document.getElementById('autoPlay').innerText="Auto Play"
+           }
+        }
+
+        function displayResult(playerMove = '', computerMove = '', result = '', isReseted) {
+            if(isReseted){
+                document.getElementById('result').innerHTML = `
+                <p>Score: You - ${score.you}, Computer - ${score.computer}, Ties - ${score.ties}</p>
+            `;
+
+                document.getElementById('moves').innerHTML=''
+            }else{
+                document.getElementById('moves').innerHTML = `
+                <div class="col-md-12">
+                    <img src="${playerMove}-emoji.png" class="move-icon" alt="${playerMove}">
+                    <span>You</span>
+                    <img src="${computerMove}-emoji.png" class="move-icon" alt="${computerMove}">
+                    <span>Computer</span>
+                </div>
+            `;
+
+            document.getElementById('result').innerHTML = `
+                <p>${result}</p>
+                <p>Score: You - ${score.you}, Computer - ${score.computer}, Ties - ${score.ties}</p>
+            `;
+            }
+
+            isReseted=false
+
+           
+            
+            
+        }
+    </script>
+
+</body>
+
+</html>
